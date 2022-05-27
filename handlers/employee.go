@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupEmployeeRoutes(app *fiber.App) {
-	employee := app.Group("/api/v1/employee")
+func setupEmployeeRoutes(app fiber.Router) {
+	employee := app.Group("employee")
 	employee.Get("/", database.GetEmployees)
 	employee.Get("/:id", database.GetEmployee)
 	employee.Post("/", database.NewEmployee)

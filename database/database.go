@@ -1,22 +1,37 @@
 package database
 
 import (
+	"context"
+	"time"
+
 	"github.com/galifornia/go-simple-hrms/types"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *gorm.DB
+const dbName = "simple-hrms"
+const mongoURI = "mongodb://localhost:27017/" + dbName
 
-func OpenDB() *gorm.DB {
-	var err error
-	DB, err = gorm.Open(sqlite.Open("hrms.db"), &gorm.Config{})
+var DB types.MongoInstance
+
+func OpenDB() error {
+	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
-		panic("failed to connect database")
+		return err
 	}
 
-	// Migrate the schema
-	DB.AutoMigrate(&types.Employee{})
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	return DB
+	err = client.Connect(ctx)
+	if err != nil {
+		return err
+	}
+
+	db := client.Database(dbName)
+
+	DB.Client = client
+	DB.Database = db
+
+	return nil
 }
